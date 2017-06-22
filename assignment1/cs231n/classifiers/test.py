@@ -12,16 +12,16 @@ print(a)
 print(b)
 print(c)
 
-print(x[1,1])
-print(x[1,2])
+print(x[1, 1])
+print(x[1, 2])
 
-d = np.array([[1,2,3], [4,5,6], [7,8,9]])
-print(np.reshape(d, (3,-1)))
+d = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+print(np.reshape(d, (3, -1)))
 
-test = np.maximum(0, [1,2,3,-1])
+test = np.maximum(0, [1, 2, 3, -1])
 print(test)
 
-number = d[d>1] 
+number = d[d > 1]
 
 x = np.arange(9.0)
 np.split(x, 3)
