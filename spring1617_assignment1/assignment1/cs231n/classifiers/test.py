@@ -20,3 +20,5 @@ print(np.reshape(d, (3,-1)))
 
 test = np.maximum(0, [1,2,3,-1])
 print(test)
+
+number = d[d>1] 

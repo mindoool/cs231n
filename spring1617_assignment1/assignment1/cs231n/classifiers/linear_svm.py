@@ -73,19 +73,30 @@ def svm_loss_vectorized(W, X, y, reg):
     """
     loss = 0.0
     dW = np.zeros(W.shape)  # initialize the gradient as zero
-    dL = np.zeros([X.shape[0], W.shape[1]])
+    dS = np.zeros([X.shape[0], W.shape[1]])
     scores = X.dot(W)
+    # scores_correct = (N,)
     scores_correct = scores[np.arange(X.shape[0]), y]
     margins = (scores.T - scores_correct).T + 1 
+    # set 0 if j = y[i]
     margins[np.arange(X.shape[0]), y] = 0
+    # set 0 if margin is negative
     margins = np.maximum(0, margins)
     loss = np.sum(margins)/X.shape[0]
+    # j=y[i]이면 -(C-netative_count-1)
+    dS[margins < 0] = 1
+    negative_count = np.sum(dS, axis=1)
+    # margin값이 0보다 크면 1, 0보다 작으면 0 (default)
+    dS[margins > 0] = 1
+    dS[margins < 0] = 0
+    dS[np.arange(X.shape[0]), y] = -(-negative_count - 1 + W.shape[1])
+
     #############################################################################
     # TODO:                                                                     #
     # Implement a vectorized version of the structured SVM loss, storing the    #
     # result in loss.                                                           #
     #############################################################################
-    pass
+    
     #############################################################################
     #                             END OF YOUR CODE                              #
     #############################################################################
@@ -99,7 +110,7 @@ def svm_loss_vectorized(W, X, y, reg):
     # to reuse some of the intermediate values that you used to compute the     #
     # loss.                                                                     #
     #############################################################################
-    pass
+    
     #############################################################################
     #                             END OF YOUR CODE                              #
     #############################################################################
