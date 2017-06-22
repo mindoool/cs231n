@@ -119,9 +119,7 @@ class KNearestNeighbor(object):
         dot = -2*np.dot(X, np.transpose(self.X_train))
         train = np.sum(self.X_train**2, axis=1)
         test = np.sum(X**2, axis=1)
-        print(np.shape(dot), np.shape(train), np.shape(test))
         temp = dot + train
-        print(np.shape(np.transpose(temp)))
         dists = np.sqrt(np.transpose(np.transpose(temp) + test))
         #########################################################################
         #                         END OF YOUR CODE                              #

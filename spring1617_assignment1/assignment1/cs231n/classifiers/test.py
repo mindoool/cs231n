@@ -22,3 +22,6 @@ test = np.maximum(0, [1,2,3,-1])
 print(test)
 
 number = d[d>1] 
+
+x = np.arange(9.0)
+np.split(x, 3)

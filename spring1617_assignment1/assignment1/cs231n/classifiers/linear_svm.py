@@ -51,7 +51,7 @@ def svm_loss_naive(W, X, y, reg):
 
     # Add regularization to the loss.
     loss += reg * np.sum(W * W)
-    dW += 2*W * reg
+    dW += 2 * W * reg
 
     #############################################################################
     # TODO:                                                                     #
@@ -72,31 +72,41 @@ def svm_loss_vectorized(W, X, y, reg):
     Inputs and outputs are the same as svm_loss_naive.
     """
     loss = 0.0
+    num_classes = W.shape[1]
+    num_train = X.shape[0]
     dW = np.zeros(W.shape)  # initialize the gradient as zero
-    dS = np.zeros([X.shape[0], W.shape[1]])
+    dS = np.zeros([num_train, num_classes])
     scores = X.dot(W)
     # scores_correct = (N,)
-    scores_correct = scores[np.arange(X.shape[0]), y]
-    margins = (scores.T - scores_correct).T + 1 
+    scores_correct = scores[np.arange(num_train), y]
+    # margins = (scores.T - scores_correct).T + 1
+    margins = scores - scores_correct.reshape((num_train,1)) + 1
     # set 0 if j = y[i]
-    margins[np.arange(X.shape[0]), y] = 0
+    margins[np.arange(num_train), y] = 0
     # set 0 if margin is negative
-    margins = np.maximum(0, margins)
-    loss = np.sum(margins)/X.shape[0]
-    # j=y[i]이면 -(C-netative_count-1)
+    forward_margins = np.maximum(0, margins)
+    loss = np.sum(forward_margins) / num_train
+    loss += reg * np.sum(W * W)
+    
+    # 0보다 작은 margin갯수를 row별로 더하기
     dS[margins < 0] = 1
     negative_count = np.sum(dS, axis=1)
     # margin값이 0보다 크면 1, 0보다 작으면 0 (default)
     dS[margins > 0] = 1
     dS[margins < 0] = 0
-    dS[np.arange(X.shape[0]), y] = -(-negative_count - 1 + W.shape[1])
+    # j=y[i]이면 -(C-negative_count-1)
+    dS[np.arange(num_train), y] = -(-negative_count - 1 + W.shape[1])
+    # dW
+    dW = np.transpose(X).dot(dS)
+    dW /= num_train
+    dW += 2 * W * reg
 
     #############################################################################
     # TODO:                                                                     #
     # Implement a vectorized version of the structured SVM loss, storing the    #
     # result in loss.                                                           #
     #############################################################################
-    
+
     #############################################################################
     #                             END OF YOUR CODE                              #
     #############################################################################
@@ -110,7 +120,7 @@ def svm_loss_vectorized(W, X, y, reg):
     # to reuse some of the intermediate values that you used to compute the     #
     # loss.                                                                     #
     #############################################################################
-    
+
     #############################################################################
     #                             END OF YOUR CODE                              #
     #############################################################################
