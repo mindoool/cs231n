@@ -31,7 +31,34 @@ def softmax_loss_naive(W, X, y, reg):
     # here, it is easy to run into numeric instability. Don't forget the        #
     # regularization!                                                           #
     ##########################################################################
-    pass
+    num_train = X.shape[0]
+    num_class = W.shape[1]
+
+    scores = np.dot(X, W)
+
+    # forward for loss
+    for i in range(num_train):
+        score_ith_row = np.sum(np.exp(scores[i]))
+        score_actual_class = np.exp(scores[i, y[i]])
+        loss += -np.log(score_actual_class / score_ith_row)
+    loss /= num_train
+    loss += reg * np.sum(W * W)
+
+    # backward for dS
+    exp_scores = np.exp(scores)
+    exp_scores_row = np.sum(exp_scores, axis=1)
+    dS = (exp_scores.T / exp_scores_row).T
+
+    ds_actual_class = np.zeros_like(scores)
+    ds_actual_class[np.arange(num_train), y] = -1
+
+    dS += ds_actual_class
+    dS /= num_train
+
+    # backward for dW
+    dW = np.transpose(X).dot(dS)
+    dW += 2 * reg * W
+
     ##########################################################################
     #                          END OF YOUR CODE                                 #
     ##########################################################################
@@ -55,7 +82,30 @@ def softmax_loss_vectorized(W, X, y, reg):
     # here, it is easy to run into numeric instability. Don't forget the        #
     # regularization!                                                           #
     ##########################################################################
-    pass
+    num_train = X.shape[0]
+    num_class = W.shape[1]
+
+    # forward for loss
+    scores = X.dot(W)
+
+    exp_scores = np.exp(scores)
+    exp_scores_row = np.sum(exp_scores, axis=1)
+    score_actual_class = scores[np.arange(num_train), y]
+    loss = np.sum(-np.log(score_actual_class / exp_scores_row))
+    loss /= num_train
+    loss += reg * np.sum(W * W)
+
+    # backward for dS, dW
+    dS = (exp_scores.T/exp_scores_row).T
+    dS_actual_class = np.zeros_like(scores)
+    dS_actual_class[np.arange(num_train), y] = -1
+
+    dS += dS_actual_class
+    dS /= num_train
+
+    dW = np.transpose(X).dot(dS)
+    dW += 2 * reg * W    
+    
     ##########################################################################
     #                          END OF YOUR CODE                                 #
     ##########################################################################
