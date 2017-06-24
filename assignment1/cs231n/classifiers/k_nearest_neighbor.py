@@ -36,7 +36,7 @@ class KNearestNeighbor(object):
 
         Returns:
         - y: A numpy array of shape (num_test,) containing predicted labels for the
-          test data, where y[i] is the predicted label for the test point X[i].  
+          test data, where y[i] is the predicted label for the test point X[i].     
         """
         if num_loops == 0:
             dists = self.compute_distances_no_loops(X)
@@ -117,11 +117,12 @@ class KNearestNeighbor(object):
         # HINT: Try to formulate the l2 distance using matrix multiplication    #
         #       and two broadcast sums.                                         #
         #######################################################################
-        dot = -2 * np.dot(X, np.transpose(self.X_train))
+        dot = -2 * np.dot(self.X_train, X.T)
+
         train = np.sum(self.X_train**2, axis=1)
         test = np.sum(X**2, axis=1)
-        temp = dot + train
-        dists = np.sqrt(np.transpose(np.transpose(temp) + test))
+        temp = dot + test
+        dists = np.sqrt(np.transpose(temp) + train)
         #######################################################################
         #                         END OF YOUR CODE                              #
         #######################################################################
