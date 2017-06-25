@@ -77,7 +77,11 @@ class TwoLayerNet(object):
         # Store the result in the scores variable, which should be an array of      #
         # shape (N, C).                                                             #
         #######################################################################
-        pass
+        # first
+        first_layer_scores = X.dot(W1) + b1
+        first_layer_scores_relu = np.maximum(first_layer_scores, 0)
+        # second = scores
+        scores = first_layer_scores_relu.dot(W2) + b2
         #######################################################################
         #                              END OF YOUR CODE                             #
         #######################################################################
@@ -94,7 +98,14 @@ class TwoLayerNet(object):
         # in the variable loss, which should be a scalar. Use the Softmax           #
         # classifier loss.                                                          #
         #######################################################################
-        pass
+        scores_exp = np.exp(scores)
+        score_max = np.amax(scores)
+        scores_exp -= score_max
+        scores_exp_actual_class = scores_exp[np.arange(N), y]
+        scores_exp_rows = np.sum(scores_exp, axis=1)
+        loss = np.sum(-np.log(scores_exp_actual_class/scores_exp_rows))
+        loss /= N
+        loss += reg * np.sum(W2 * W2)
         #######################################################################
         #                              END OF YOUR CODE                             #
         #######################################################################
@@ -106,7 +117,16 @@ class TwoLayerNet(object):
         # and biases. Store the results in the grads dictionary. For example,       #
         # grads['W1'] should store the gradient on W1, and be a matrix of same size #
         #######################################################################
-        pass
+        dS = (scores_exp.T / scores_exp_rows).T
+
+        dS_actual_class = np.zeros_like(scores_exp)
+        dS_actual_class[np.arange(N), y] = -1
+        dS -= dS_actual_class
+        dS /= N
+
+        dW2 = first_layer_scores_relu.T.dot(dS) + 2 * reg * W2
+        db2 = np.sum(dS, axis=0)
+
         #######################################################################
         #                              END OF YOUR CODE                             #
         #######################################################################
