@@ -87,6 +87,8 @@ def softmax_loss_vectorized(W, X, y, reg):
 
     # forward for loss
     scores = X.dot(W)
+    max_score = np.amax(scores)
+    scores -= max_score
 
     exp_scores = np.exp(scores)
     exp_scores_row = np.sum(exp_scores, axis=1)
