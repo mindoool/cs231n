@@ -98,14 +98,16 @@ class TwoLayerNet(object):
         # in the variable loss, which should be a scalar. Use the Softmax           #
         # classifier loss.                                                          #
         #######################################################################
-        scores_exp = np.exp(scores)
-        score_max = np.amax(scores)
-        scores_exp -= score_max
-        scores_exp_actual_class = scores_exp[np.arange(N), y]
-        scores_exp_rows = np.sum(scores_exp, axis=1)
-        loss = np.sum(-np.log(scores_exp_actual_class/scores_exp_rows))
-        loss /= N
-        loss += reg * np.sum(W2 * W2)
+
+        def softmax(scores):
+            scores -= np.max(scores)
+            scores_exp = np.exp(scores)
+            scores_exp_rows = np.sum(scores_exp, axis=1)
+            return (scores_exp.T / scores_exp_rows).T
+        probs = softmax(scores)
+        loss = -np.log(probs[np.arange(N), y]) #(N, )
+        loss = np.sum(loss) / N + reg * np.sum(W2**2) + reg * np.sum(W1**2)
+
         #######################################################################
         #                              END OF YOUR CODE                             #
         #######################################################################
@@ -117,15 +119,25 @@ class TwoLayerNet(object):
         # and biases. Store the results in the grads dictionary. For example,       #
         # grads['W1'] should store the gradient on W1, and be a matrix of same size #
         #######################################################################
-        dS = (scores_exp.T / scores_exp_rows).T
-
-        dS_actual_class = np.zeros_like(scores_exp)
-        dS_actual_class[np.arange(N), y] = -1
-        dS -= dS_actual_class
+        dS = probs
+        dS[np.arange(N), y] -= 1
         dS /= N
 
         dW2 = first_layer_scores_relu.T.dot(dS) + 2 * reg * W2
         db2 = np.sum(dS, axis=0)
+
+        dZ = dS.dot(W2.T)
+        dZ[first_layer_scores_relu <= 0] = 0
+
+        dW1 = X.T.dot(dZ) + 2 * reg * W1
+        db1 = np.sum(dZ, axis=0)
+
+        grads = {
+            "W1": dW1,
+            "b1": db1,
+            "W2": dW2,
+            "b2": db2
+        }
 
         #######################################################################
         #                              END OF YOUR CODE                             #
