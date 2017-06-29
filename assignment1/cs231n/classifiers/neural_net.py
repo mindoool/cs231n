@@ -249,7 +249,8 @@ class TwoLayerNet(object):
         #######################################################################
         # TODO: Implement this function; it should be VERY simple!                #
         #######################################################################
-        y_pred = np.argmax(X.dot(self.params['W1']) + self.params['b1'], axis=1)
+        Z = np.maximum(X.dot(self.params['W1']) + self.params['b1'], 0)
+        y_pred = np.argmax(Z.dot(self.params['W2']) + self.params['b2'], axis=1)
         #######################################################################
         #                              END OF YOUR CODE                           #
         #######################################################################
