@@ -267,24 +267,24 @@ class FullyConnectedNet(object):
         # self.bn_params[1] to the forward pass for the second batch normalization #
         # layer, etc.                                                              #
         ############################################################################
-        
+        cache_dict = {}
         for i in range(self.len_dims_list-2):
             # affine
             W = self.params["W" + str(i+1)]
             b = self.params["b" + str(i+1)]
-            X, cache = affine_forward(X, W, b)
+            X, cache_dict["affine"+str(i+1)] = affine_forward(X, W, b)
+            
 
             # batchnorm
             if self.use_batchnorm:
                 gamma = self.params["gamma" + str(i+1)]
                 beta = self.params["beta" + str(i+1)]
-                X, cache = batchnorm_forward(X, gamma, beta, self.bn_params[i])
+                X, cache_dict["batchnorm"+str(i+1)] = batchnorm_forward(X, gamma, beta, self.bn_params[i])
 
             # relu
-            X, cache = relu_forward(X)
+            X, cache_dict["relu"+str(i+1)] = relu_forward(X)
 
-        out, cache = affine_forward(X, self.params["W" + str(self.len_dims_list-1)], self.params["b" + str(self.len_dims_list-1)])
-        loss, dx = softmax_loss(out, y)
+        scores, cache_dict["last"] = affine_forward(X, self.params["W" + str(self.len_dims_list-1)], self.params["b" + str(self.len_dims_list-1)])
         
         ############################################################################
         #                             END OF YOUR CODE                             #
@@ -308,9 +308,34 @@ class FullyConnectedNet(object):
         # automated tests, make sure that your L2 regularization includes a factor #
         # of 0.5 to simplify the expression for the gradient.                      #
         ############################################################################
-        pass
+        loss, dout = softmax_loss(scores, y)
+        for i in range(1, self.len_dims_list):
+            loss += 0.5 * self.reg * (np.sum(self.params["W"+str(i)]**2))
+        dx, dw, db = affine_backward(dout, cache_dict["last"])
+        
+        grads["W"+str(self.len_dims_list-1)] = dw
+        grads["W"+str(self.len_dims_list-1)] += self.reg * self.params["W" + str(self.len_dims_list-1)]
+        grads["b"+str(self.len_dims_list-1)] = db
+        num = self.len_dims_list-2
+        for i in range(num):
+            # relu
+            dx = relu_backward(dx, cache_dict["relu"+str(num-i)])
+            
+            # batch
+            if self.use_batchnorm:
+                dx, dgamma, dbeta = batchnorm_backward(dx, cache_dict["batchnorm"+str(num-i)])
+                grads["batchnorm" + str(num-i)] = dx
+                grads["gamma" + str(num-i)] = dgamma
+                grads["beta" + str(num-i)] = dbeta
+
+            # affine
+            dx, dw, db = affine_backward(dx, cache_dict["affine"+str(num-i)])
+            
+            grads["W" + str(num-i)] = dw
+            grads["W" + str(num-i)] += self.reg * self.params["W" + str(num-i)]
+            grads["b" + str(num-i)] = db
+
         ############################################################################
         #                             END OF YOUR CODE                             #
         ############################################################################
-
         return loss, grads
